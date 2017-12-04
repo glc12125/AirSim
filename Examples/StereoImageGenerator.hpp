@@ -9,7 +9,7 @@
 #include "common/common_utils/ProsumerQueue.hpp"
 #include "common/common_utils/FileSystem.hpp"
 #include "common/ClockFactory.hpp"
-#include "vehicles/multirotor/api/MultirotorRpcLibClient.hpp"
+#include "vehicles/car/api/CarRpcLibClient.hpp"
 #include "vehicles/multirotor/controllers/DroneControllerBase.hpp"
 #include "RandomPointPoseGenerator.hpp"
 STRICT_MODE_OFF
@@ -30,7 +30,7 @@ public:
 
     int generate(int num_samples)
     {
-        msr::airlib::MultirotorRpcLibClient client;
+        msr::airlib::CarRpcLibClient client;
         client.confirmConnection();
 
         msr::airlib::ClockBase* clock = msr::airlib::ClockFactory::get();
@@ -57,7 +57,7 @@ public:
                 //    continue;
                 //}
                 ++sample;
-
+                std::cout << "Gathering image packet no. " << sample << " tagert: " << num_samples << "\n";
                 auto start_nanos = clock->nowNanos();
 
                 std::vector<ImageRequest> request = { 
@@ -66,6 +66,7 @@ public:
                     ImageRequest(1, ImageType::DisparityNormalized, true)
                 };
                 const std::vector<ImageResponse>& response = client.simGetImages(request);
+                std::cout << "Got " << response.size() << " responses\n";
                 if (response.size() != 3) {
                     std::cout << "Images were not recieved!" << std::endl;
                     start_nanos = clock->nowNanos();
@@ -144,16 +145,18 @@ private:
     static void processImages(common_utils::ProsumerQueue<ImagesResult>* results)
     {
         while (!results->getIsDone()) {
+            std::cout << "results is not done yet\n";
             msr::airlib::ClockBase* clock = msr::airlib::ClockFactory::get();
 
             ImagesResult result;
             if (!results->tryPop(result)) {
+                std::cout << "Cannot pop from results\n";
                 clock->sleep_for(1);
                 continue;
             }
 
             auto process_time = clock->nowNanos();
-
+            std::cout << "Saving images in processImages\n";
             std::string left_file_name = Utils::stringf("left_%06d.png", result.sample);
             std::string right_file_name = Utils::stringf("right_%06d.png", result.sample);
             std::string disparity_file_name  = Utils::stringf("disparity_%06d.pfm", result.sample);
@@ -187,6 +190,7 @@ private:
                 << std::endl;
 
         }
+        std::cout << "results is done Now!!!!\n";
     }
 
     static void saveImageToFile(const std::vector<uint8_t>& image_data, const std::string& file_name)

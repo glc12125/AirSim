@@ -68,11 +68,17 @@ void runSteroImageGenerator(int argc, const char *argv[])
         : std::string(argv[2]));
 }
 
-int main(int argc, const char *argv[])
+int main(int argc, char ** argv)
 {
     using namespace msr::airlib;
 
-    GaussianMarkovTest test;
-    test.run();
+    StereoImageGenerator test("/home/liangchuan/Documents/AirSim/API_Generated");
+    if(test.generate(100))
+    {
+        std::cerr << "Cannot generate with StereoImageGenerator\n";
+        return -1;
+    } else {
+        std::cout << "Successsfully generated images\n";
+    }
 }
 

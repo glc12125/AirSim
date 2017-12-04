@@ -20,6 +20,7 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <limits.h>
 #include <queue>
 #include "type_utils.hpp"
 
